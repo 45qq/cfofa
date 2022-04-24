@@ -21,6 +21,7 @@ def output_file(mode, q, data: list):
         os.mkdir(output_dir)
 
     data.sort(key=lambda item: item[0][0])
+    path = None
 
     if not os.path.exists(os.path.join(output_dir, "q.txt")):
         with open(os.path.join(output_dir, "q.txt"), 'w', encoding='utf-8') as f:
@@ -62,4 +63,4 @@ def output_file(mode, q, data: list):
                         f.write('\n')
                         ip_list.append(row[index])
 
-    return output_dir
+    return path

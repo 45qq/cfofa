@@ -27,7 +27,7 @@ var_q = tk.StringVar(value=cd.q)
 var_mess_1 = tk.StringVar()
 var_mess_2 = tk.StringVar()
 var_mess_3 = tk.StringVar()
-var_current_page = tk.StringVar()
+var_current_page = tk.StringVar(value="0")
 
 tree_menu: tk.Menu
 tree_output: ttk.Treeview
@@ -65,7 +65,7 @@ def reset(tree):
     var_mess_1.set("")
     var_mess_2.set("")
     var_mess_3.set("")
-    var_current_page.set("")
+    var_current_page.set("0")
     info_text.config(state='normal')
     info_text.delete(0.1, 'end')
     info_text.config(state='disabled')
@@ -119,19 +119,48 @@ def show_tree_menu(event):
         tree_menu.grab_release()
 
 
-def show_proxy_dialog():
-    dialog_dialog = tk.Toplevel(window)
-    dialog_dialog.resizable(width=False, height=False)
-    dialog_dialog.attributes('-topmost', 1)
-    dialog_dialog.geometry("256x165+%d+%d" % ((screen_width - 256) / 2, (screen_height - 165) / 2))
-
-    l0 = tk.Frame(dialog_dialog, bg='#FFFFFF')
+def show_about_dialog():
+    dialog_about = tk.Toplevel(window)
+    dialog_about.resizable(width=False, height=False)
+    dialog_about.attributes('-topmost', 1)
+    dialog_about.geometry("256x165+%d+%d" % ((screen_width - 256) / 2, (screen_height - 165) / 2))
+    dialog_about.bind("<FocusOut>", lambda event: dialog_about.destroy())
+    dialog_about.focus()
+    l0 = tk.Frame(dialog_about, bg='#FFFFFF')
     l0.pack(fill='x', side='top')
-    l1 = tk.Frame(dialog_dialog)
+    l1 = tk.Frame(dialog_about)
     l1.pack(fill='x', side='top', pady=5, padx=5)
-    l2 = tk.Frame(dialog_dialog)
+    l2 = tk.Frame(dialog_about)
     l2.pack(fill='x', side='top', pady=5, padx=5)
-    l3 = tk.Frame(dialog_dialog)
+    l3 = tk.Frame(dialog_about)
+    l3.pack(fill='x', side='top', pady=5, padx=5)
+    l4 = tk.Frame(dialog_about)
+    l4.pack(fill='x', side='top', pady=5, padx=10)
+    tk.Label(l0, text='关于', bg='#FFFFFF').pack(side='left', fill='x', padx=10, pady=5)
+    tk.Label(l2, text='版本：cfofa v1.0').pack(side='left', padx=5)
+    tk.Label(l3, text='作者：四五qq').pack(side='left', padx=5)
+    tk.Label(l4, text='项目：').pack(side='left')
+    label_address = tk.Label(l4, text='https://github.com/45qq/cfofa', fg='blue')
+    label_address.pack(side='left')
+    label_address.bind("<Button-1>", lambda event: open("https://github.com/45qq/cfofa"))
+
+    window.wait_window(dialog_about)
+
+
+def show_proxy_dialog():
+    dialog_proxy = tk.Toplevel(window)
+    dialog_proxy.resizable(width=False, height=False)
+    dialog_proxy.attributes('-topmost', 1)
+    dialog_proxy.geometry("256x165+%d+%d" % ((screen_width - 256) / 2, (screen_height - 165) / 2))
+    dialog_proxy.bind("<FocusOut>", lambda event: dialog_proxy.destroy())
+    dialog_proxy.focus()
+    l0 = tk.Frame(dialog_proxy, bg='#FFFFFF')
+    l0.pack(fill='x', side='top')
+    l1 = tk.Frame(dialog_proxy)
+    l1.pack(fill='x', side='top', pady=5, padx=5)
+    l2 = tk.Frame(dialog_proxy)
+    l2.pack(fill='x', side='top', pady=5, padx=5)
+    l3 = tk.Frame(dialog_proxy)
     l3.pack(fill='x', side='top', pady=5, padx=5)
     tk.Label(l0, text='设置代理', bg='#FFFFFF').pack(side='left', fill='x', padx=10, pady=5)
     tk.Checkbutton(l1, text='使用代理', variable=var_use_proxy).pack(side='left', padx=5)
@@ -140,12 +169,13 @@ def show_proxy_dialog():
     tk.Label(l3, text='端口：').pack(side='left', padx=5)
     tk.Entry(l3, textvariable=var_proxy_port).pack(fill='x', expand=1, padx=5)
 
-    window.wait_window(dialog_dialog)
+    window.wait_window(dialog_proxy)
     save_proxy(var_use_proxy.get(), var_proxy_host.get(), int(var_proxy_port.get()))
 
 
 def show():
     window.title("cfofa")
+    window.iconphoto(True, tk.PhotoImage(file='./icon/icon.png'))
     window_width = 675
     window_height = 512
     window.geometry("%dx%d+%d+%d" % (window_width, window_height, (screen_width - window_width) / 2,
@@ -155,7 +185,7 @@ def show():
     window['menu'] = menu
 
     menu.add_command(label='代理', command=show_proxy_dialog)
-    menu.add_command(label='关于', command=None)
+    menu.add_command(label='关于', command=show_about_dialog)
 
     l1 = tk.Frame(window)
     l1.pack(fill='x', side='top', pady=5, padx=5)
