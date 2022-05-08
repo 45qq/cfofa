@@ -2,6 +2,7 @@
 import threading
 import urllib3
 import lib.fofa as fofa
+from time import sleep
 from concurrent.futures import ThreadPoolExecutor, as_completed, wait
 
 headers = {
@@ -77,7 +78,7 @@ def start_search(tree, tid):
 
     ui_print_message(0, "共 %s 条，%d 页。" % (total, max_page))
 
-    with ThreadPoolExecutor(max_workers=20) as t:
+    with ThreadPoolExecutor(max_workers=10) as t:
         obj_list = []
         for i in range(cd.start_page, end_page + 1):
             obj_list.append(t.submit(fofa.crawling_content, cd.qbase64, i, 0))
@@ -106,14 +107,17 @@ def start_search(tree, tid):
                     count += num
                     page_count = page_count + 1
                     ui_print_message(1, "正在获取数据中。。。[当前 %d 页 %d 条，总 %d 条]" % (page_count, num, count))
-                elif row_route[3] < 5:
+                elif row_route[3] < 100:
                     flag = True
                     fail_list.append(t.submit(fofa.crawling_content, cd.qbase64, row_route[2], row_route[3] + 1))
                 else:
-                    ui_print_message(1, "第 %d 页获取失败！" % row_route[2])
+                    ui_print_message(2, "第 %d 页获取失败！" % row_route[2])
             wait(obj_list)
             obj_list = [i for i in fail_list]
             fail_list.clear()
+            ui_print_message(1, "2 秒后尝试重新获取。")
+            sleep(1)
+
         ui_print_message(1, "数据获取完成！获取 %d 页，%d 条。" % (page_count, count))
         ui_print_message(2, "查询 %s 完成！" % cd.q)
         ui_print_message(4, '')

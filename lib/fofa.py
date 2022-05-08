@@ -55,7 +55,8 @@ def handle_content(page, content):
 def crawling_content(qbase64, page: int, r: int) -> (list, str, int):
     params = {
         "qbase64": qbase64,
-        "page": page
+        "page": page,
+        "page_size": 20
     }
 
     crawling_data = []
@@ -81,6 +82,9 @@ def crawling_info(qbase, cd_max_page):
     max_page = 0
     end_page = 0
     if row_route[0]:
+        total = len(row_route[0])
+        if total > 0:
+            end_page = max_page = 1
         re_total = re.search(patt_total, row_route[1], flags=re.M)
         if re_total:
             total = re_total.group(1)

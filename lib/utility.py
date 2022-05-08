@@ -11,7 +11,7 @@ import os
 from tkinter import StringVar
 
 old_socksocket = None
-output_head_list = ["#", "URL", "IP", "标题", "端口", "协议"]
+output_head_list = ["#", "URL", "IP", "网站标题", "端口", "协议"]
 
 
 def get_output_head():
@@ -74,7 +74,7 @@ def update_proxy(cd):
     global old_socksocket
     if cd.use_proxy:
         old_socksocket = socket.socket
-        socks.set_default_proxy(socks.SOCKS5, cd.proxy_host, cd.proxy_port)
+        socks.set_default_proxy(socks.HTTP, cd.proxy_host, cd.proxy_port)
         socket.socket = socks.socksocket
         requests.session().keep_alive = False
     elif old_socksocket:
