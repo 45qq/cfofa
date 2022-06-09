@@ -18,6 +18,8 @@ if not os.path.exists(data_path):
     config.set('User', 'max_page', '10')
     config.set('User', 'output_mode', '0')
     config.set('User', 'qbase64', '')
+    config.add_section('Options')
+    config.set('Options', 'cookie_thread_count', '2')
     config.write(open(data_path, 'w', encoding='utf-8'))
 else:
     config.read(data_path, 'utf-8')
@@ -35,6 +37,8 @@ class Cd:
         self.output_mode = config.getint('User', 'output_mode')
         self.qbase64 = config.get('User', 'qbase64')
         self.q = decode_base64(self.qbase64)
+
+        self.cookie_thread_count = config.getint('Options', 'cookie_thread_count')
 
 
 cd = Cd()
@@ -70,4 +74,11 @@ def save_user(cookie, start_page, max_page, output_mode, q):
 def save_output_mode(output_mode):
     cd.output_mode = output_mode
     config.set('User', 'output_mode', str(output_mode))
+    config.write(open(data_path, 'w', encoding='utf-8'))
+
+
+def save_option(cookie_thread_count):
+    cd.cookie_thread_count = cookie_thread_count
+
+    config.set('Options', 'cookie_thread_count', str(cookie_thread_count))
     config.write(open(data_path, 'w', encoding='utf-8'))

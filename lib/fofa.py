@@ -6,7 +6,7 @@ import requests
 patt_item = '<div class="rightListsMain">(.*?)<div class="contentRight">'
 patt_ip = r'\d+\.\d+\.\d+\.\d+'
 patt_url = '<span class="aSpan"><a href="(.*?)"'
-patt_title = '<p class="max-tow-row">\n +(.*)\n'
+patt_title = '<p class="max-tow-row">(.*?)<'
 patt_port = r'<a class="portHover">(\d*?)</a>'
 patt_protocol = r'class="whiteSpan protocolHover"><!---->\n +\b(.*?)\n'
 

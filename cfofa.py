@@ -4,7 +4,8 @@ import tkinter as tk
 import lib.body as body
 import lib.utility as utility
 import lib.output as output
-from lib.body import start, is_finished, get_data, get_wait_page, set_wait_page
+from lib.body import start, is_finished, get_all_data, get_wait_page, set_wait_page, clear_old_data, stop, \
+    save_to_old_date
 from config import *
 from tkinter import ttk
 from lib.fofa import domain
@@ -28,17 +29,20 @@ var_mess_1 = tk.StringVar()
 var_mess_2 = tk.StringVar()
 var_mess_3 = tk.StringVar()
 var_current_page = tk.StringVar(value="0")
+var_cookie_thread_count = tk.StringVar(value=cd.cookie_thread_count)
+var_button_search = tk.StringVar(value="查询")
 
 tree_menu: tk.Menu
 tree_output: ttk.Treeview
 info_text: tk.Text
 button_output: tk.Button
 button_dir: tk.Button
+button_save_old: tk.Button
 
 tree_select_item: list
 
 
-def print_message(level, message):
+def print_message(level, message=''):
     message = str(message)
     if level == 0:
         print(message)
@@ -55,8 +59,10 @@ def print_message(level, message):
     elif level == 3:
         var_current_page.set(message)
     elif level == 4:
-        if len(get_data()) > 0:
+        if len(get_all_data()) > 0:
             button_output['state'] = tk.NORMAL
+            button_save_old['state'] = tk.NORMAL
+        var_button_search.set('查询')
 
 
 def reset(tree):
@@ -71,6 +77,7 @@ def reset(tree):
     info_text.config(state='disabled')
     button_dir['state'] = tk.DISABLED
     button_output['state'] = tk.DISABLED
+    button_save_old['state'] = tk.DISABLED
 
 
 utility.ui_print_message = print_message
@@ -79,16 +86,21 @@ body.ui_reset = reset
 
 
 def search(tree):
-    save_user(var_cookie.get(), utility.check_int(var_start_page), utility.check_int(var_max_page),
-              output_list.index(var_ouput.get()), var_q.get())
-    output.new_output_dir(output_dir)
-    start(tree, cd)
+    if var_button_search.get() == '查询':
+        var_button_search.set('停止')
+        save_user(var_cookie.get(), utility.check_int(var_start_page), utility.check_int(var_max_page),
+                  output_list.index(var_ouput.get()), var_q.get())
+        output.new_output_dir(output_dir)
+        start(tree, cd)
+    elif var_button_search.get() == '停止':
+        var_button_search.set('查询')
+        stop()
 
 
 def output_file():
     save_output_mode(output_list.index(var_ouput.get()))
     if is_finished():
-        data = get_data()
+        data = get_all_data()
         if not len(data):
             print_message(2, "数据为空！")
             return
@@ -100,6 +112,11 @@ def output_file():
         print_message(2, "已保存到 " + result)
     else:
         print_message(2, "数据还在获取中！")
+
+
+def old_data_clear():
+    clear_old_data()
+    print_message(2, "已清除旧查询数据!")
 
 
 def obtain_cookie():
@@ -173,6 +190,29 @@ def show_proxy_dialog():
     save_proxy(var_use_proxy.get(), var_proxy_host.get(), int(var_proxy_port.get()))
 
 
+def show_option_dialog():
+    dialog_proxy = tk.Toplevel(window)
+    dialog_proxy.resizable(width=False, height=False)
+    dialog_proxy.attributes('-topmost', 1)
+    dialog_proxy.geometry("300x125+%d+%d" % ((screen_width - 300) / 2, (screen_height - 125) / 2))
+    dialog_proxy.bind("<FocusOut>", lambda event: dialog_proxy.destroy())
+    dialog_proxy.focus()
+    l0 = tk.Frame(dialog_proxy, bg='#FFFFFF')
+    l0.pack(fill='x', side='top')
+    l1 = tk.Frame(dialog_proxy)
+    l1.pack(fill='x', side='top', pady=5, padx=5)
+    l2 = tk.Frame(dialog_proxy)
+    l2.pack(fill='x', side='top', pady=5, padx=5)
+    tk.Label(l0, text='配置', bg='#FFFFFF').pack(side='left', fill='x', padx=10, pady=5)
+    tk.Label(l1, text='线程：').pack(side='left', padx=5)
+    tk.Entry(l1, textvariable=var_cookie_thread_count, width=10).pack(padx=5, side='left')
+    tk.Label(l2, text='清除保留的查询数据：').pack(side='left', padx=5)
+    tk.Button(l2, text="清除", bg='#DCDCDC', command=old_data_clear, width=10).pack(side='left', padx=10)
+
+    window.wait_window(dialog_proxy)
+    save_option(utility.check_int(var_cookie_thread_count))
+
+
 def show():
     window.title("cfofa")
     window.iconphoto(True, tk.PhotoImage(file='./icon/icon.png'))
@@ -185,6 +225,7 @@ def show():
     window['menu'] = menu
 
     menu.add_command(label='代理', command=show_proxy_dialog)
+    menu.add_command(label='配置', command=show_option_dialog)
     menu.add_command(label='关于', command=show_about_dialog)
 
     l1 = tk.Frame(window)
@@ -208,20 +249,26 @@ def show():
 
     img_dir = tk.PhotoImage(file='./icon/dir_3.png')
     global button_output, button_dir
-    button_dir = tk.Button(l2r2, image=img_dir, bg='#DCDCDC', command=lambda: utility.open_fp(output.output_dir), width=30)
+    button_dir = tk.Button(l2r2, image=img_dir, bg='#DCDCDC', command=lambda: utility.open_fp(output.output_dir),
+                           width=38)
     button_dir.pack(side='right', padx=10)
     button_dir['state'] = tk.DISABLED
     button_output = tk.Button(l2r2, text="导出", bg='#DCDCDC', command=output_file, width=10)
     button_output.pack(side='right')
     button_output['state'] = tk.DISABLED
     ttk.Combobox(l2r2, state='readonly', cursor='arrow', textvariable=var_ouput, values=output_list, width=12).pack(
-        side='right', padx=10)
+        side='right', padx=5)
 
     l3 = tk.Frame(window)
     l3.pack(fill='x', side='top', pady=5, padx=5)
     tk.Label(l3, text="查询语句：", width=10).pack(side='left', padx=5)
     tk.Entry(l3, textvariable=var_q).pack(fill='x', side='left', expand=1, padx=5)
-    tk.Button(l3, text="查询", bg='#DCDCDC', command=lambda: search(tree_output), width=10).pack(side='right', padx=10)
+    global button_save_old
+    button_save_old = tk.Button(l3, text='保留', bg='#DCDCDC', command=save_to_old_date, width=5)
+    button_save_old.pack(side='right', padx=10)
+    button_save_old['state'] = tk.DISABLED
+    tk.Button(l3, textvariable=var_button_search, bg='#DCDCDC', command=lambda: search(tree_output), width=10).pack(
+        side='right')
 
     l4 = tk.Frame(window)
     l4.pack(fill='x', side='top', pady=10, padx=10)
