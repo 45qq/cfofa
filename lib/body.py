@@ -73,7 +73,17 @@ def output_tree(tree, d):
     ui_print_message(3, str(wait_page))
 
 
+def theard_crawling_content(tid, qbase64, page: int, r: int):
+    if tid != thead_id:
+        ui_print_message(4)
+        return
+    return fofa.crawling_content(qbase64, page, r)
+
+
 def start_search(tree, tid):
+    if tid != thead_id:
+        ui_print_message(4)
+        return
     global old_thead, total, max_page, end_page, page_count, count
     if old_thead and old_thead.is_alive():
         old_thead.join()
@@ -102,7 +112,7 @@ def start_search(tree, tid):
     with ThreadPoolExecutor(max_workers=cd.cookie_thread_count) as t:
         obj_list = []
         for i in range(cd.start_page, end_page + 1):
-            obj_list.append(t.submit(fofa.crawling_content, cd.qbase64, i, 0))
+            obj_list.append(t.submit(theard_crawling_content, tid, cd.qbase64, i, 0))
 
         count = 0
         page_count = 0
